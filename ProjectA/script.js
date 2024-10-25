@@ -1,95 +1,118 @@
-let x = [];
-let y = [];
-let s = [];
-let speedX = [];
-let speedY = [];
-let opa = [];
-let n = 1000;
-let threshold = 60;
-let angle = 90;
-let w = 10;
-let r;
+let sound, fft;
+let img;
+let customCursor;
+
+
+function preload() {
+  img = loadImage("background.png");
+  customCursor = loadImage('hand.png');
+  sound = loadSound("SoundVolcano3.mp3");
+}
+
+let numBalls = 100; // Number of balls
+let circleX = [];
+let circleY = [];
+let vx = [];
+let vy = [];
+let circleRadius = [];
+let boundaryRadius = 150;
+//let boundaryCenterX, boundaryCenterY;
+let boundaryCenterX = 400;
+let boundaryCenterY = 250;
+
+let r = 50;
 
 function setup() {
-    createCanvas(800, 500);
-  let canvas = createCanvas(800, 500);
-  canvas.id("p5-canvas");
-  canvas.parent("p5-canvas-container");
-  for (let i = 0; i < n; i++) {
-    x[i] = random(width);
-    y[i] = random(height);
-    s[i] = random(30, 50);
-    speedX[i] = random(0.001, 0.01);
-    speedY[i] = random(0.001, 0.01);
-    opa[i] = random(160);
+  createCanvas(800, 500);
+  noCursor();
+  fft = new p5.FFT();
+  sound.amp(0.5);
+  sound.loop();
+
+  // Set the center of the boundary
+  // boundaryCenterX = random(width);
+  // boundaryCenterY = random(height);
+
+  // Initialize positions and velocities for each ball
+  for (let i = 0; i < numBalls; i++) {
+    circleRadius[i] = random(10, 20);
+    circleX[i] = random(
+      boundaryCenterX - boundaryRadius + circleRadius[i],
+      boundaryCenterX + boundaryRadius - circleRadius[i]
+    );
+    circleY[i] = random(
+      boundaryCenterY - boundaryRadius + circleRadius[i],
+      boundaryCenterY + boundaryRadius - circleRadius[i]
+    );
+
+    // Initialize velocity with random values
+    vx[i] = random(-2, 2);
+    vy[i] = random(-2, 2);
   }
 }
 
 function draw() {
-  background(0);
-  for (let i = 0; i < width; i+=w) {
-    for (let j = 0; j < width; j+=w) {
-      if (i < width / 2) {
-        r = map(i, 0, width / 2, 0, 250);
-      } else {
-        r = map(i, width / 2,width, 250, 0);
-      }
-      push();
-      translate(i,j);
-      rotate(angle);
-      rectMode(CENTER);
-      noStroke();
-      fill(r,0,0);
-      rect(0,0,w,w);
-      pop();
+  background(0, 30);
+  image(img, 0, 0, 800, 500);
+  image(customCursor, mouseX-50, mouseY-50, 100, 100);
+
+  let spectrum = fft.analyze();
+  let soundLevel = fft.getCentroid();
+
+  boundaryCenterX = noise(frameCount * 0.01) * width;
+  boundaryCenterY = noise(frameCount * 0.01 + 100) * height;
+
+  //boundaryRadius = map(sin(frameCount * 0.01), -1, 1, 250, 450, true);
+  boundaryRadius = map(soundLevel, 2000, 6000, 50, 200, true);
+
+  // Draw the boundary circle
+  noFill();
+  stroke(220);
+  strokeWeight(0);
+  ellipse(boundaryCenterX, boundaryCenterY, boundaryRadius * 2);
+
+  // Update and draw each ball
+  for (let i = 0; i < numBalls; i++) {
+    // Update the circle's position
+    circleX[i] += vx[i];
+    circleY[i] += vy[i];
+
+    // Calculate the distance from the center of the boundary
+    let dx = circleX[i] - boundaryCenterX;
+    let dy = circleY[i] - boundaryCenterY;
+    let distFromCenter = sqrt(dx * dx + dy * dy);
+
+    // Check if the circle is outside the boundary
+    if (distFromCenter + circleRadius[i] > boundaryRadius) {
+      // Correct position to bring the circle inside the boundary
+      let overflowDistance = distFromCenter + circleRadius[i] - boundaryRadius;
+
+      // Move the circle back just inside the boundary
+      let scalingFactor = 0.99;
+      circleX[i] = boundaryCenterX + dx * scalingFactor;
+      circleY[i] = boundaryCenterY + dy * scalingFactor;
+
+      // Reverse the velocity to keep it bouncing back inside the boundary
+      vx[i] = -vx[i];
+      vy[i] = -vy[i];
     }
-  }
-  angle+=0.03;
-  for (let i = 0; i < n; i++) {
-    drawFace(x[i], y[i], s[i], opa[i]);
-  }
-  move();
-  awayMouse();
-}
-function drawFace(ballX, ballY, ballS, ballOpa) {
-  push();
-  translate(ballX, ballY);
-  fill(0, ballOpa);
-  noStroke();
-  circle(0, 0, ballS);
-  pop();
-}
 
-function move() {
-  for (let i = 0; i < n; i++) {
-    x[i] = width * noise(frameCount * speedX[i]);
-    y[i] = height * noise(frameCount * speedY[i]);
-  }
-}
+    for (let i = 0; i < numBalls; i++) {
+      let mouseDist = dist(mouseX, mouseY, circleX[i], circleY[i]);
+      if (mouseDist <= r) {
+        // Calculate the angle between the particle and the mouse
+        let angle = atan2(circleY[i] - mouseY, circleX[i] - mouseX);
 
-function awayMouse() {
-  for (let i = 0; i < n; i++) {
-    let mouseDist = dist(mouseX, mouseY, x[i], y[i]);
-    if (mouseDist <= s[i] + threshold/2) {
-      let randomNum = random();
-      if (randomNum < 0.25) {
-        x[i] = mouseX + threshold + random(10, 15);
-        y[i] = mouseY + threshold + random(10, 15);
-      } else if (randomNum >= 0.25 && randomNum < 0.5) {
-        x[i] = mouseX - threshold + random(-15, -10);
-        y[i] = mouseY + threshold + random(10, 15);
-      } else if (randomNum >= 0.5 && randomNum < 0.75) {
-        x[i] = mouseX + threshold + random(10, 15);
-        y[i] = mouseY - threshold + random(-15, -10);
-      } else if (randomNum >= 0.75) {
-        x[i] = mouseX - threshold + random(-15, -10);
-        y[i] = mouseY - threshold + random(-15, -10);
+        circleX[i] += cos(angle) * 5;
+        circleY[i] += sin(angle) * 5;
       }
-    } else {
-      x[i] = width * noise(frameCount * speedX[i]);
-      y[i] = height * noise(frameCount * speedY[i]);
+      //drawBall(x[i], y[i], s[i], test[i]);
     }
+
+    // Draw the circle
+    fill(0, 100);
+    noStroke();
+    ellipse(circleX[i], circleY[i], circleRadius[i] * 2);
   }
+  //console.log(soundLevel);
 }
-
-
