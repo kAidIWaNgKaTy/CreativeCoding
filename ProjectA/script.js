@@ -4,9 +4,9 @@ let customCursor;
 
 
 function preload() {
-  img = loadImage("background.png");
-  customCursor = loadImage('grill glove2.png');
-  sound = loadSound("SoundVolcano3.mp3");
+  img = loadImage("assets/background.png");
+  customCursor = loadImage('assets/grillglove2.png');
+  sound = loadSound("assets/SoundVolcano3.mp3");
 }
 
 let numBalls = 200; // Number of balls
@@ -23,7 +23,8 @@ let boundaryCenterY = 250;
 let r = 50;
 
 function setup() {
-  createCanvas(800, 500);
+  let canvas = createCanvas(800, 500);
+  canvas.parent("p5-canvas-container");
   noCursor();
   fft = new p5.FFT();
   sound.amp(0.5);
