@@ -5,11 +5,11 @@ let customCursor;
 
 function preload() {
   img = loadImage("background.png");
-  customCursor = loadImage('hand.png');
+  customCursor = loadImage('grill glove2.png');
   sound = loadSound("SoundVolcano3.mp3");
 }
 
-let numBalls = 100; // Number of balls
+let numBalls = 200; // Number of balls
 let circleX = [];
 let circleY = [];
 let vx = [];
@@ -71,28 +71,24 @@ function draw() {
   strokeWeight(0);
   ellipse(boundaryCenterX, boundaryCenterY, boundaryRadius * 2);
 
-  // Update and draw each ball
+  
   for (let i = 0; i < numBalls; i++) {
-    // Update the circle's position
+    
     circleX[i] += vx[i];
     circleY[i] += vy[i];
 
-    // Calculate the distance from the center of the boundary
+    
     let dx = circleX[i] - boundaryCenterX;
     let dy = circleY[i] - boundaryCenterY;
     let distFromCenter = sqrt(dx * dx + dy * dy);
 
-    // Check if the circle is outside the boundary
     if (distFromCenter + circleRadius[i] > boundaryRadius) {
-      // Correct position to bring the circle inside the boundary
       let overflowDistance = distFromCenter + circleRadius[i] - boundaryRadius;
 
-      // Move the circle back just inside the boundary
       let scalingFactor = 0.99;
       circleX[i] = boundaryCenterX + dx * scalingFactor;
       circleY[i] = boundaryCenterY + dy * scalingFactor;
 
-      // Reverse the velocity to keep it bouncing back inside the boundary
       vx[i] = -vx[i];
       vy[i] = -vy[i];
     }
