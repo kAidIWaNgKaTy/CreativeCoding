@@ -64,29 +64,29 @@ class KatyDancer {
     for(let i=0; i<400; i+=10){
       let j = 10*sin((frameCount*10-i)/100);
       let s = map(i, 200, 400, 40, 1);
-      let opa = map(i, 0, 400, 255, 10);
-      fill(255,0,0,opa/2);
+      let opa = map(i, 0, 400, 200, 10);
+      fill(255,0,0,opa/3);
       circle(i/4,j,s);
     }
     for(let i=0; i<600; i+=10){
       let j = 10*sin((frameCount*10-i)/100);
       let s = map(i, 0, 600, 80, 1);
-      let opa = map(i, 0, 600, 255,0);
-      fill(255,0,0,opa);
+      let opa = map(i, 0, 600, 200,10);
+      fill(255,0,0,opa/3);
       circle(i/4,j+30,s);
     }
     for(let i=0; i<400; i+=10){
       let j = -10*sin((frameCount*10-i)/100);
       let s = map(i, 200, 400, 40, 1);
-      let opa = map(i, 0, 400, 255,0);
-      fill(255,0,0,opa);
+      let opa = map(i, 0, 400, 200,10);
+      fill(255,0,0,opa/3);
       circle(i/4,j+50,s);
     }
     pop();
     
     this.m = -20*sin(frameCount/10);
     noStroke();
-    fill(255,0,0);
+    fill(255,0,0,200);
     ellipse(this.x-width/2+20,this.y-height/2,this.m+120,85);
     
     //white:
