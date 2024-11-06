@@ -56,9 +56,8 @@ class KatyDancer {
     // ******** //
     // ⬇️ draw your dancer from here ⬇️
     
-    //red:
     push();
-    translate(this.x-width/2, this.y-height/2);
+    //translate(this.x-width/2, this.y-height/2);
     rotate(80);
     noStroke();
     for(let i=0; i<400; i+=10){
@@ -91,7 +90,7 @@ class KatyDancer {
     
     //white:
     push();
-    translate(this.x-width/2, this.y-height/2);
+    //translate(this.x-width/2, this.y-height/2);
     rotate(80);
     noStroke();
     for(let i=0; i<300; i+=10){
@@ -123,36 +122,36 @@ class KatyDancer {
     ellipse(this.x-width/2+20,this.y-height/2+10,this.m+75,55);
     
     //yellow:
-    push();
-    translate(this.x-width/2, this.y-height/2);
-    rotate(80);
-    noStroke();
-    for(let i=0; i<80; i+=10){
-      let j = -5*sin((frameCount*20-i)/100);
-      let s = map(i, 0, 80, 10, 1);
-      let opa = map(i, 0, 80, 255, 10);
-      fill(242,242,8,opa);
-      circle(i/4-25,j+15,s);
-    }
-    for(let i=0; i<100; i+=10){
-      let j = -5*sin((frameCount*20-i)/100);
-      let s = map(i, 0, 120, 20, 1);
-      let opa = map(i, 0, 120, 255,0);
-      fill(242,242,8,opa);
-      circle(i/4-25,j+25,s);
-    }
-    for(let i=0; i<80; i+=10){
-      let j = -5*sin((frameCount*20-i)/100);
-      let s = map(i, 0, 80, 10, 1);
-      let opa = map(i, 0, 80, 255,0);
-      fill(242,242,8,opa);
-      circle(i/4-25,j+35,s);
-    }
-    pop();
+    // push();
+    // translate(this.x-width/2, this.y-height/2);
+    // rotate(80);
+    // noStroke();
+    // for(let i=0; i<80; i+=10){
+    //   let j = -5*sin((frameCount*20-i)/100);
+    //   let s = map(i, 0, 80, 10, 1);
+    //   let opa = map(i, 0, 80, 255, 10);
+    //   fill(242,242,8,opa);
+    //   circle(i/4-25,j+15,s);
+    // }
+    // for(let i=0; i<100; i+=10){
+    //   let j = -5*sin((frameCount*20-i)/100);
+    //   let s = map(i, 0, 120, 20, 1);
+    //   let opa = map(i, 0, 120, 255,0);
+    //   fill(242,242,8,opa);
+    //   circle(i/4-25,j+25,s);
+    // }
+    // for(let i=0; i<80; i+=10){
+    //   let j = -5*sin((frameCount*20-i)/100);
+    //   let s = map(i, 0, 80, 10, 1);
+    //   let opa = map(i, 0, 80, 255,0);
+    //   fill(242,242,8,opa);
+    //   circle(i/4-25,j+35,s);
+    // }
+    // pop();
     
-    //face:
+    //eyes:
     push();
-    translate(this.x-width/2, this.y-height/2);
+    //translate(this.x-width/2, this.y-height/2);
     let v = 5*sin(frameCount*0.4);
     fill(0);
     circle(-5,v-10, 10);
@@ -164,6 +163,16 @@ class KatyDancer {
     // ellipse(this.x + 5, this.y - 2.5, 5);
     pop();
 
+    //mouth:
+    push();
+    translate();
+    noStroke();
+      let s = sin(frameCount*0.4);
+      let size=map(s,-1,1,20,40);
+      fill(207, 27, 14);
+      ellipse(25,10,size/1.5,size);
+    pop();
+
     // ⬆️ draw your dancer above ⬆️
     // ******** //
 
@@ -173,7 +182,7 @@ class KatyDancer {
     // it is using "this" because this function, too, 
     // is a part if your Dancer object.
     // comment it out or delete it eventually.
-    this.drawReferenceShapes()
+    //this.drawReferenceShapes()
 
     pop();
   }
