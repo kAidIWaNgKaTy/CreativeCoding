@@ -18,7 +18,7 @@ function setup() {
   canvas.parent("p5-canvas-container");
 
   // ...except to adjust the dancer's name on the next line:
-  dancer = new KatyDancer(width / 2, height / 2);
+  dancer = new KatyDancer(width/2, height/2);
 }
 
 function draw() {
@@ -83,10 +83,12 @@ class KatyDancer {
     }
     pop();
     
+    push();
     this.m = -20*sin(frameCount/10);
     noStroke();
     fill(255,0,0,200);
-    ellipse(this.x-width/2+20,this.y-height/2,this.m+120,85);
+    ellipse(20,0,this.m+120,85);
+    pop();
     
     //white:
     push();
@@ -116,10 +118,12 @@ class KatyDancer {
     }
     pop();
     
+    push();
     this.m = 10*sin(frameCount/3.5);
     noStroke();
     fill(255);
-    ellipse(this.x-width/2+20,this.y-height/2+10,this.m+75,55);
+    ellipse(20,10,this.m+75,55);
+    pop();
     
     //yellow:
     // push();
