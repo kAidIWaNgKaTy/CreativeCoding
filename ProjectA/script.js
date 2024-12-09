@@ -52,6 +52,10 @@ function setup() {
   }
 }
 
+function mousePressed() {
+  console.log("test");
+}
+
 function draw() {
   background(0, 30);
   image(img, 0, 0, 800, 500);
