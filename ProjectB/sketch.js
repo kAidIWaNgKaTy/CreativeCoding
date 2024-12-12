@@ -17,48 +17,67 @@ let faceMesh;
 let options = { maxFaces: 1, refineLandmarks: false, flipped: false };
 let video;
 let faces = [];
-let particles = [];
 let analyzers=[];
-const NUM_PARTICLES = 50;
-
 
 let isStarted = false;
+let arrow;
+let isDragging = false;
+let interfaceVisible = true;
 
 function draw() {
   background(0);
 
-  if (!isStarted) {
+  if (interfaceVisible) {
     push();
-    push();
-    translate(width, - ((width / 640) * 480 - height) / 2)
-    scale(-1, 1);  // Mirror the video horizontally
+    translate(width, -((width / 640) * 480 - height) / 2);
+    scale(-1, 1);
     image(video, 0, 0, width, (width / 640) * 480);
     pop();
-    return;
+  } else {
+    fill(0);
+    rect(0, 0, width, height);
   }
 
-  // Add this new code to update and draw particles
-  let totalVolume = 0;
-  for (let analyzer of analyzers) {
-    totalVolume += analyzer.getLevel();
-  }
-  totalVolume /= analyzers.length;  // Get average volume
+  let slideX = map(arrow.x, width-50, 50, width, 0);
+  fill(0);
+  rect(slideX, 0, width, height);
 
-  for (let particle of particles) {
-    particle.update(totalVolume);
-    particle.draw();
+  if (isDragging) {
+    arrow.x = constrain(mouseX, 50, width-50);
+  }
+
+  if (isStarted && arrow.x >= width - 50) {  // When arrow reaches right edge
+
+    isStarted = false;
+    interfaceVisible = true;
+    
+    mouthOpenSound.stop();
+    mouthOpenSound2.stop();
+    shakingHeadSound.stop();
+    eyebrowSound.stop();
+  }
+
+  if (!isStarted && arrow.x < width/2) {
+    isStarted = true;
+    mouthOpenSound.loop();
+    mouthOpenSound2.loop();
+    shakingHeadSound.loop();
+    eyebrowSound.loop();
   }
 
   for (let i = 0; i < faces.length; i++) {
     let face = faces[i];
-
+    push();
+    translate(width, -((width / 640) * 480 - height) / 2);
+    scale(-1, 1);
+    
     for (let j = 0; j < face.keypoints.length; j++) {
       let keypoint = face.keypoints[j];
       fill(100, 100, 100);  
       noStroke();
       ellipse(keypoint.x, keypoint.y, 5, 5);  
     }
-
+    
     let mouthHeight = dist(face.keypoints[13].x, face.keypoints[13].y, face.keypoints[14].x, face.keypoints[14].y);
     let faceHeight = dist(face.keypoints[152].x, face.keypoints[152].y, face.keypoints[10].x, face.keypoints[10].y);
     let mouthProportion = mouthHeight / faceHeight;
@@ -91,17 +110,62 @@ function draw() {
       face.keypoints[168].x, face.keypoints[168].y);
     let avgEyebrowNoseDistance = (leftEyebrowNoseDistance + rightEyebrowNoseDistance) / 2;
     let frownProportion = avgEyebrowNoseDistance / faceHeight;
-    let frownThreshold = 0.11; 
+    let frownThreshold = 0.10; 
     if (frownProportion < frownThreshold) {
       eyebrowSound.setVolume(2, 0.1);
     } else {
       eyebrowSound.setVolume(0, 0.1);
     }
+    
+    pop();
+  }
 
-    // // Display the index number near each keypoint
-    // fill(0, 0, 100); // Set text color to red for the numbers (contrast with dots)
-    // textAlign(CENTER, CENTER); // Align text to center it around the dot
-    // text(j, keypoint.x + 10, keypoint.y);  // Display the index number slightly to the right of the dot
+  if (true) {
+    drawingContext.shadowBlur = 35;
+    drawingContext.shadowColor = 'rgb(0, 255, 0)';
+    
+    push();
+    strokeWeight(5);
+    stroke(120, 100, 80);
+    
+    let angle = 120;
+    let angleRad = angle * PI / 180;
+    let lineLength = arrow.size * 3;
+    let spacing = 20; 
+    
+    if (arrow.x > width/2) {
+        let x1 = arrow.x + cos(angleRad/2) * lineLength;
+        let y1 = arrow.y - sin(angleRad/2) * lineLength;
+        let x2 = arrow.x + cos(-angleRad/2) * lineLength;
+        let y2 = arrow.y - sin(-angleRad/2) * lineLength;
+        line(arrow.x, arrow.y, x1, y1);
+        line(arrow.x, arrow.y, x2, y2);
+        
+        let x3 = (arrow.x - spacing) + cos(angleRad/2) * lineLength;
+        let y3 = arrow.y - sin(angleRad/2) * lineLength;
+        let x4 = (arrow.x - spacing) + cos(-angleRad/2) * lineLength;
+        let y4 = arrow.y - sin(-angleRad/2) * lineLength;
+        line(arrow.x - spacing, arrow.y, x3, y3);
+        line(arrow.x - spacing, arrow.y, x4, y4);
+    } else {
+        let x1 = arrow.x - cos(angleRad/2) * lineLength;
+        let y1 = arrow.y - sin(angleRad/2) * lineLength;
+        let x2 = arrow.x - cos(-angleRad/2) * lineLength;
+        let y2 = arrow.y - sin(-angleRad/2) * lineLength;
+        line(arrow.x, arrow.y, x1, y1);
+        line(arrow.x, arrow.y, x2, y2);
+        
+        let x3 = (arrow.x - spacing) - cos(angleRad/2) * lineLength;
+        let y3 = arrow.y - sin(angleRad/2) * lineLength;
+        let x4 = (arrow.x - spacing) - cos(-angleRad/2) * lineLength;
+        let y4 = arrow.y - sin(-angleRad/2) * lineLength;
+        line(arrow.x - spacing, arrow.y, x3, y3);
+        line(arrow.x - spacing, arrow.y, x4, y4);
+    }
+    
+    pop();
+    
+    drawingContext.shadowBlur = 0;
   }
 }
 
@@ -148,26 +212,12 @@ function setup() {
   analyzers[2].setInput(shakingHeadSound);
   analyzers[3].setInput(eyebrowSound);
   
-  for (let i = 0; i < NUM_PARTICLES; i++) {
-    particles.push(new Particle(random(width), random(height)));
-  }
-
   // Start detecting faces from the webcam video
   faceMesh.detectStart(video, gotFaces);
   pop();
-}
 
-document.addEventListener('DOMContentLoaded', () => {
-  const startButton = document.getElementById('start-button');
-  startButton.addEventListener('click', () => {
-    document.getElementById('start-screen').style.display = 'none';
-    isStarted = true;
-    mouthOpenSound.loop();
-    mouthOpenSound2.loop();
-    shakingHeadSound.loop();
-    eyebrowSound.loop();
-  });
-});
+  arrow = { x: width - 50, y: height/2, size: 20 };
+}
 
 // Callback function for when faceMesh outputs data
 function gotFaces(results) {
@@ -175,59 +225,39 @@ function gotFaces(results) {
   faces = results;
 }
 
-class Particle {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.velX = 0;
-    this.velY = 0;
-    this.accX = 0;
-    this.accY = 0;
-    this.size = random(3, 8);
-    this.maxSpeed = 5;
-  }
-
-  update(volume) {
-    // Add upward force based on volume
-    let force = map(volume, 0, 1, 0, 8);
-    this.accY -= force;
-    
-    // Add gravity
-    this.accY += 0.5;
-    
-    // Update physics
-    this.velX += this.accX;
-    this.velY += this.accY;
-    
-    // Limit speed
-    this.velX = constrain(this.velX, -this.maxSpeed, this.maxSpeed);
-    this.velY = constrain(this.velY, -this.maxSpeed, this.maxSpeed);
-    
-    // Update position
-    this.x += this.velX;
-    this.y += this.velY;
-    
-    // Reset acceleration
-    this.accX = 0;
-    this.accY = 0;
-    
-    // Bounce off edges
-    if (this.y > height) {
-      this.y = height;
-      this.velY *= -0.8;
+function mousePressed() {
+  let hitAreaWidth = arrow.size * 2.5;
+  let hitAreaHeight = arrow.size * 2; 
+  
+  if (arrow.x > width/2) {
+    if (mouseX > arrow.x && mouseX < arrow.x + hitAreaWidth &&
+        mouseY > arrow.y - hitAreaHeight/2 && mouseY < arrow.y + hitAreaHeight/2) {
+      isDragging = true;
     }
-    if (this.x < 0 || this.x > width) {
-      this.x = constrain(this.x, 0, width);
-      this.velX *= -0.8;
+  } else {
+    if (mouseX < arrow.x && mouseX > arrow.x - hitAreaWidth &&
+        mouseY > arrow.y - hitAreaHeight/2 && mouseY < arrow.y + hitAreaHeight/2) {
+      isDragging = true;
     }
   }
+}
 
-  draw() {
-    push();
-    fill(120, 100, 80);  // Green in HSB
-    noStroke();
-    ellipse(this.x, this.y, this.size, this.size);
-    pop();
+function mouseReleased() {
+  if (isDragging && !isStarted) {
+    if (arrow.x > width/2) {
+      isStarted = true;
+      mouthOpenSound.loop();
+      mouthOpenSound2.loop();
+      shakingHeadSound.loop();
+      eyebrowSound.loop();
+    }
+  }
+  isDragging = false;
+}
+
+function mouseDragged() {
+  if (isDragging) {
+    arrow.x = constrain(mouseX, 50, width-50);
   }
 }
 
