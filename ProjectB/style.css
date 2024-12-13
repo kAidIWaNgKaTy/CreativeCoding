@@ -7,4 +7,23 @@ body{
     height: 100vh;
 }
 
+button {
+    font-family: 'Courier New', Courier, monospace;
+    padding: 10px 20px;
+    background: #2ecc71;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+button:hover {
+    background: #27ae60;
+}
+
 

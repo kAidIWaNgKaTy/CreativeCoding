@@ -4,8 +4,12 @@ let shakingHeadSound;
 let eyebrowSound;
 //let smileSound;
 
+let christmasMouthSound;
+let christmasMouthSound2;
+let christmasShakingSound;
+let christmasEyebrowSound;
 
-
+let currentMode = 'NowWe'; // or 'christmas'
 
 let previousNoseY = 0;
 let isShaking = false;
@@ -47,6 +51,8 @@ const WAVE_COLORS = [
   [140, 100, 60]     // Deep emerald
 ];
 
+let snowflakes = [];
+
 class WaveTrack {
   constructor(y, color) {
     this.points = new Array(100).fill(0);
@@ -81,12 +87,54 @@ class WaveTrack {
   }
 }
 
+class Snowflake {
+  constructor() {
+    this.x = random(width);
+    this.y = random(-100, 0);
+    this.size = random(3, 8);
+    this.speed = random(1, 4);
+    this.wobble = random(0, 2 * PI);
+  }
+
+  fall() {
+    this.y += this.speed;
+    this.x += sin(this.wobble) * 0.5;
+    this.wobble += 0.05;
+
+    if (this.y > height) {
+      this.y = random(-100, 0);
+      this.x = random(width);
+    }
+  }
+
+  show() {
+    fill(255);
+    noStroke();
+    circle(this.x, this.y, this.size);
+  }
+}
+
 
 
 
 function draw() {
   background(0);
 
+  if (currentMode === 'christmas') {
+    // Create new snowflakes if needed
+    while (snowflakes.length < 200) {
+      snowflakes.push(new Snowflake());
+    }
+    
+    // Update and draw snowflakes
+    for (let flake of snowflakes) {
+      flake.fall();
+      flake.show();
+    }
+  } else {
+    // Clear snowflakes when not in Christmas mode
+    snowflakes = [];
+  }
 
   if (interfaceVisible) {
     push();
@@ -114,17 +162,20 @@ function draw() {
 
 
   if (isStarted && arrow.x >= width - 50) {  // When arrow reaches right edge
-
-
-
-
     isStarted = false;
     interfaceVisible = true;
 
+    // Stop normal mode sounds
     mouthOpenSound.stop();
     mouthOpenSound2.stop();
     shakingHeadSound.stop();
     eyebrowSound.stop();
+
+    // Stop Christmas mode sounds
+    christmasMouthSound.stop();
+    christmasMouthSound2.stop();
+    christmasShakingSound.stop();
+    christmasEyebrowSound.stop();
   }
 
 
@@ -132,15 +183,27 @@ function draw() {
 
   if (!isStarted && arrow.x < width / 2) {
     isStarted = true;
-    mouthOpenSound.jump(0);
-    mouthOpenSound2.jump(0);
-    shakingHeadSound.jump(0);
-    eyebrowSound.jump(0);
+    if (currentMode === 'NowWe') {
+      mouthOpenSound.jump(0);
+      mouthOpenSound2.jump(0);
+      shakingHeadSound.jump(0);
+      eyebrowSound.jump(0);
 
-    mouthOpenSound.loop();
-    mouthOpenSound2.loop();
-    shakingHeadSound.loop();
-    eyebrowSound.loop();
+      mouthOpenSound.loop();
+      mouthOpenSound2.loop();
+      shakingHeadSound.loop();
+      eyebrowSound.loop();
+    } else {
+      christmasMouthSound.jump(0);
+      christmasMouthSound2.jump(0);
+      christmasShakingSound.jump(0);
+      christmasEyebrowSound.jump(0);
+
+      christmasMouthSound.loop();
+      christmasMouthSound2.loop();
+      christmasShakingSound.loop();
+      christmasEyebrowSound.loop();
+    }
   }
 
 
@@ -165,8 +228,13 @@ function draw() {
 
     for (let j = 0; j < face.keypoints.length; j++) {
       let keypoint = face.keypoints[j];
-      fill(100, 100, 100);
       noStroke();
+      // Change fill color based on mode
+      if (currentMode === 'christmas') {
+        fill(255); // White for Christmas mode
+      } else {
+        fill(100, 100, 100); // Original grey color for NowWe mode
+      }
       ellipse(keypoint.x, keypoint.y, 5, 5);
     }
 
@@ -219,6 +287,50 @@ function draw() {
       eyebrowSound.setVolume(2, 0.1);
     } else {
       eyebrowSound.setVolume(0, 0.1);
+    }
+
+    let leftMouthCorner = face.keypoints[61];
+    let rightMouthCorner = face.keypoints[291];
+    let upperLipCenter = face.keypoints[13];  // Center point of upper lip
+
+    // Calculate how much the mouth corners are lifted relative to the center
+    let avgCornerHeight = (leftMouthCorner.y + rightMouthCorner.y) / 2;
+    let lipLift = upperLipCenter.y - avgCornerHeight;
+    let lipLiftProportion = lipLift / faceHeight;  // Normalize by face height
+    let smileThreshold = 0.01;  // Adjust this value to change sensitivity
+
+    if (currentMode === 'christmas') {
+      // Use smile detection (lifted corners) for vocals
+      if (lipLiftProportion > smileThreshold) {
+        christmasMouthSound.setVolume(1, 0.1);
+        christmasMouthSound2.setVolume(1, 0.1);
+      } else {
+        christmasMouthSound.setVolume(0, 0.1);
+        christmasMouthSound2.setVolume(0, 0.1);
+      }
+
+      // Use the same head shaking logic as NowWe mode
+      if (noseMovement > shakeThreshold) {
+        isShaking = true;
+        christmasShakingSound.setVolume(2, 0.1);
+      } else {
+        isShaking = false;
+        christmasShakingSound.setVolume(0, 0.1);
+      }
+
+      // Use eyebrow raising for bass
+      if (frownProportion > frownThreshold) {
+        christmasEyebrowSound.setVolume(2, 0.1);
+      } else {
+        christmasEyebrowSound.setVolume(0, 0.1);
+      }
+
+      // Keep the playback rate control
+      let playbackRate = map(noseX, 0, width, 0.8, 1.2);
+      christmasMouthSound.rate(playbackRate);
+      christmasMouthSound2.rate(playbackRate);
+      christmasShakingSound.rate(playbackRate);
+      christmasEyebrowSound.rate(playbackRate);
     }
 
     pop();
@@ -276,7 +388,7 @@ function draw() {
   }
 
   // Update and draw wave tracks
-  if (isStarted) {
+  if (isStarted && currentMode === 'NowWe') {
     waveLines[0].addPoint(mouthOpenSound.getVolume());
     waveLines[1].addPoint(mouthOpenSound2.getVolume());
     waveLines[2].addPoint(shakingHeadSound.getVolume());
@@ -298,11 +410,17 @@ var w = 640, h = 480;
 
 function preload() {
   faceMesh = ml5.faceMesh(options);
+  // Normal sounds
   mouthOpenSound = loadSound('assets/NowWeAreReadyToSpend/Other.mp3');
   mouthOpenSound2 = loadSound('assets/NowWeAreReadyToSpend/Vocals.mp3');
   shakingHeadSound = loadSound('assets/NowWeAreReadyToSpend/Drums.mp3');
   eyebrowSound = loadSound('assets/NowWeAreReadyToSpend/Bass.mp3');
-  //smileSound = loadSound('assets/ChrisrmasTimeIsHere/.mp3');
+  
+  // Christmas sounds
+  christmasMouthSound = loadSound('assets/ChristmasTimeIsHere/Other.mp3');
+  christmasMouthSound2 = loadSound('assets/ChristmasTimeIsHere/Vocals.mp3');
+  christmasShakingSound = loadSound('assets/ChristmasTimeIsHere/Drums.mp3');
+  christmasEyebrowSound = loadSound('assets/ChristmasTimeIsHere/Bass.mp3');
 }
 
 
@@ -338,6 +456,12 @@ function setup() {
   shakingHeadSound.setVolume(0);
   eyebrowSound.setVolume(0);
 
+  // Add initialization for Christmas song tracks
+  christmasMouthSound.setVolume(0);
+  christmasMouthSound2.setVolume(0);
+  christmasShakingSound.setVolume(0);
+  christmasEyebrowSound.setVolume(0);
+
 
 
 
@@ -355,6 +479,11 @@ function setup() {
   for (let i = 0; i < 4; i++) {
     waveLines.push(new WaveTrack(spacing * (i + 1), WAVE_COLORS[i]));
   }
+
+  // Create mode switch button
+  let switchButton = createButton('Switch Mode');
+  switchButton.position(20, 20);
+  switchButton.mousePressed(switchMode);
 }
 
 
@@ -412,5 +541,33 @@ function mouseDragged() {
 }
 
 
+
+
+function switchMode() {
+  // Stop all currently playing sounds
+  mouthOpenSound.stop();
+  mouthOpenSound2.stop();
+  shakingHeadSound.stop();
+  eyebrowSound.stop();
+  christmasMouthSound.stop();
+  christmasMouthSound2.stop();
+  christmasShakingSound.stop();
+  christmasEyebrowSound.stop();
+
+  // Switch mode
+  currentMode = currentMode === 'NowWe' ? 'christmas' : 'NowWe';
+  
+  if (currentMode === 'christmas') {
+    // Initialize snowflakes
+    snowflakes = Array(100).fill().map(() => new Snowflake());
+  } else {
+    // Clear snowflakes
+    snowflakes = [];
+  }
+  
+  // Reset arrow position
+  arrow.x = width - 50;
+  isStarted = false;
+}
 
 
