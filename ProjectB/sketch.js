@@ -2,6 +2,7 @@ let mouthOpenSound;
 let mouthOpenSound2;
 let shakingHeadSound;
 let eyebrowSound;
+//let smileSound;
 
 
 
@@ -34,6 +35,51 @@ let isStarted = false;
 let arrow;
 let isDragging = false;
 let interfaceVisible = true;
+
+
+
+
+let waveLines = [];
+const WAVE_COLORS = [
+  [90, 70, 100],     // Yellow-green
+  [120, 100, 100],   // Pure green
+  [160, 100, 80],    // Blue-green (teal)
+  [140, 100, 60]     // Deep emerald
+];
+
+class WaveTrack {
+  constructor(y, color) {
+    this.points = new Array(100).fill(0);
+    this.y = y;
+    this.color = color;
+    this.maxPoints = 100;
+    this.currentVolume = 0;
+  }
+
+  addPoint(volume) {
+    this.currentVolume = lerp(this.currentVolume, volume, 0.1);
+    this.points.unshift(this.currentVolume);
+    if (this.points.length > this.maxPoints) {
+      this.points.pop();
+    }
+  }
+
+  draw() {
+    push();
+    stroke(this.color);
+    strokeWeight(2);
+    noFill();
+    beginShape();
+    for (let i = 0; i < this.points.length; i++) {
+      let x = map(i, 0, this.maxPoints, width, 0);
+      let amplitude = map(this.points[i], 0, 1, 0, 50);
+      let pointyWave = pow(sin(i * 0.3), 3) * amplitude;
+      vertex(x, this.y + pointyWave);
+    }
+    endShape();
+    pop();
+  }
+}
 
 
 
@@ -228,6 +274,18 @@ function draw() {
 
     drawingContext.shadowBlur = 0;
   }
+
+  // Update and draw wave tracks
+  if (isStarted) {
+    waveLines[0].addPoint(mouthOpenSound.getVolume());
+    waveLines[1].addPoint(mouthOpenSound2.getVolume());
+    waveLines[2].addPoint(shakingHeadSound.getVolume());
+    waveLines[3].addPoint(eyebrowSound.getVolume());
+    
+    for (let wave of waveLines) {
+      wave.draw();
+    }
+  }
 }
 
 
@@ -244,6 +302,7 @@ function preload() {
   mouthOpenSound2 = loadSound('assets/NowWeAreReadyToSpend/Vocals.mp3');
   shakingHeadSound = loadSound('assets/NowWeAreReadyToSpend/Drums.mp3');
   eyebrowSound = loadSound('assets/NowWeAreReadyToSpend/Bass.mp3');
+  //smileSound = loadSound('assets/ChrisrmasTimeIsHere/.mp3');
 }
 
 
@@ -290,6 +349,12 @@ function setup() {
 
 
   arrow = { x: width - 50, y: height / 2, size: 20 };
+
+  // Initialize wave tracks
+  let spacing = height / 5;
+  for (let i = 0; i < 4; i++) {
+    waveLines.push(new WaveTrack(spacing * (i + 1), WAVE_COLORS[i]));
+  }
 }
 
 
