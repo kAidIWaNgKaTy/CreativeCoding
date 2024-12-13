@@ -484,6 +484,33 @@ function setup() {
   let switchButton = createButton('Switch Mode');
   switchButton.position(20, 20);
   switchButton.mousePressed(switchMode);
+
+  // Add cyberpunk styling to the button
+  switchButton.style('background-color', '#000000');
+  switchButton.style('color', '#00ff00');
+  switchButton.style('border', '2px solid #00ff00');
+  switchButton.style('padding', '10px 20px');
+  switchButton.style('font-family', 'Arial, sans-serif');
+  switchButton.style('font-size', '16px');
+  switchButton.style('text-transform', 'uppercase');
+  switchButton.style('letter-spacing', '2px');
+  switchButton.style('cursor', 'pointer');
+  switchButton.style('box-shadow', '0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00');
+  switchButton.style('text-shadow', '0 0 5px #00ff00');
+  switchButton.style('transition', 'all 0.3s ease');
+
+  // Add hover effect
+  switchButton.mouseOver(() => {
+    switchButton.style('background-color', '#00ff00');
+    switchButton.style('color', '#000000');
+    switchButton.style('box-shadow', '0 0 15px #00ff00, 0 0 25px #00ff00, 0 0 35px #00ff00');
+  });
+
+  switchButton.mouseOut(() => {
+    switchButton.style('background-color', '#000000');
+    switchButton.style('color', '#00ff00');
+    switchButton.style('box-shadow', '0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00');
+  });
 }
 
 
