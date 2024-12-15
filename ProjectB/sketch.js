@@ -2,20 +2,16 @@ let mouthOpenSound;
 let mouthOpenSound2;
 let shakingHeadSound;
 let eyebrowSound;
-//let smileSound;
 
 let christmasMouthSound;
 let christmasMouthSound2;
 let christmasShakingSound;
 let christmasEyebrowSound;
 
-let currentMode = 'NowWe'; // or 'christmas'
+let currentMode = 'NowWe';
 
 let previousNoseY = 0;
 let isShaking = false;
-
-
-
 
 let envelope;
 // let osc;
@@ -24,34 +20,55 @@ let sustainTime = 0.5;
 let sustainLevel = 0.8;
 let releaseTime = 0.01;
 
-
-
-
 let faceMesh;
 let options = { maxFaces: 1, refineLandmarks: false, flipped: false };
 let video;
 let faces = [];
-
-
-
 
 let isStarted = false;
 let arrow;
 let isDragging = false;
 let interfaceVisible = true;
 
-
-
-
 let waveLines = [];
 const WAVE_COLORS = [
-  [90, 70, 100],     // Yellow-green
-  [120, 100, 100],   // Pure green
-  [160, 100, 80],    // Blue-green (teal)
-  [140, 100, 60]     // Deep emerald
+  [90, 70, 100],     
+  [120, 100, 100],   
+  [160, 100, 80],   
+  [140, 100, 60]     
 ];
 
 let snowflakes = [];
+
+class Snow {
+  constructor() {
+    this.x = random(width);
+    this.y = random(-100, 0);
+    this.size = random(3, 8);
+    this.speed = random(1, 3);
+    this.wobble = random(0, 2 * PI);
+    this.brightness = random(200, 255);
+    this.isOffscreen = false;  
+  }
+
+  fall() {
+    this.y += this.speed;
+    this.x += sin(this.wobble) * 0.5;
+    this.wobble += 0.01;
+
+    if (this.y > height) {
+      this.isOffscreen = true;
+    }
+  }
+
+  show() {
+    push();
+    noStroke();
+    fill(this.brightness);
+    circle(this.x, this.y, this.size);
+    pop();
+  }
+}
 
 class WaveTrack {
   constructor(y, color) {
@@ -87,54 +104,9 @@ class WaveTrack {
   }
 }
 
-class Snowflake {
-  constructor() {
-    this.x = random(width);
-    this.y = random(-100, 0);
-    this.size = random(3, 8);
-    this.speed = random(1, 4);
-    this.wobble = random(0, 2 * PI);
-  }
-
-  fall() {
-    this.y += this.speed;
-    this.x += sin(this.wobble) * 0.5;
-    this.wobble += 0.05;
-
-    if (this.y > height) {
-      this.y = random(-100, 0);
-      this.x = random(width);
-    }
-  }
-
-  show() {
-    fill(255);
-    noStroke();
-    circle(this.x, this.y, this.size);
-  }
-}
-
-
-
 
 function draw() {
   background(0);
-
-  if (currentMode === 'christmas') {
-    // Create new snowflakes if needed
-    while (snowflakes.length < 200) {
-      snowflakes.push(new Snowflake());
-    }
-    
-    // Update and draw snowflakes
-    for (let flake of snowflakes) {
-      flake.fall();
-      flake.show();
-    }
-  } else {
-    // Clear snowflakes when not in Christmas mode
-    snowflakes = [];
-  }
 
   if (interfaceVisible) {
     push();
@@ -144,34 +116,23 @@ function draw() {
     pop();
   }
 
-
-
-
   let slideX = map(arrow.x, width - 50, 50, width, 0);
   fill(0);
   rect(slideX, 0, width, height);
-
-
-
 
   if (isDragging) {
     arrow.x = constrain(mouseX, 50, width - 50);
   }
 
-
-
-
-  if (isStarted && arrow.x >= width - 50) {  // When arrow reaches right edge
+  if (isStarted && arrow.x >= width - 50) {  
     isStarted = false;
     interfaceVisible = true;
 
-    // Stop normal mode sounds
     mouthOpenSound.stop();
     mouthOpenSound2.stop();
     shakingHeadSound.stop();
     eyebrowSound.stop();
 
-    // Stop Christmas mode sounds
     christmasMouthSound.stop();
     christmasMouthSound2.stop();
     christmasShakingSound.stop();
@@ -215,11 +176,9 @@ function draw() {
     translate(width, -((width / 640) * 480 - height) / 2);
     scale(-1, 1);
 
-    // Get nose x position and map it to playback rate
     let noseX = face.keypoints[4].x;
     let playbackRate = map(noseX, 0, width, 0.8, 1.2);
 
-    // Apply playback rate to all sounds
     mouthOpenSound.rate(playbackRate);
     mouthOpenSound2.rate(playbackRate);
     shakingHeadSound.rate(playbackRate);
@@ -229,11 +188,11 @@ function draw() {
     for (let j = 0; j < face.keypoints.length; j++) {
       let keypoint = face.keypoints[j];
       noStroke();
-      // Change fill color based on mode
+
       if (currentMode === 'christmas') {
-        fill(255); // White for Christmas mode
+        fill(255); 
       } else {
-        fill(100, 100, 100); // Original grey color for NowWe mode
+        fill(100, 100, 100); 
       }
       ellipse(keypoint.x, keypoint.y, 5, 5);
     }
@@ -291,16 +250,14 @@ function draw() {
 
     let leftMouthCorner = face.keypoints[61];
     let rightMouthCorner = face.keypoints[291];
-    let upperLipCenter = face.keypoints[13];  // Center point of upper lip
+    let upperLipCenter = face.keypoints[13];  
 
-    // Calculate how much the mouth corners are lifted relative to the center
     let avgCornerHeight = (leftMouthCorner.y + rightMouthCorner.y) / 2;
     let lipLift = upperLipCenter.y - avgCornerHeight;
-    let lipLiftProportion = lipLift / faceHeight;  // Normalize by face height
-    let smileThreshold = 0.01;  // Adjust this value to change sensitivity
+    let lipLiftProportion = lipLift / faceHeight;  
+    let smileThreshold = 0.01;  
 
     if (currentMode === 'christmas') {
-      // Use smile detection (lifted corners) for vocals
       if (lipLiftProportion > smileThreshold) {
         christmasMouthSound.setVolume(1, 0.1);
         christmasMouthSound2.setVolume(1, 0.1);
@@ -309,7 +266,6 @@ function draw() {
         christmasMouthSound2.setVolume(0, 0.1);
       }
 
-      // Use the same head shaking logic as NowWe mode
       if (noseMovement > shakeThreshold) {
         isShaking = true;
         christmasShakingSound.setVolume(2, 0.1);
@@ -318,14 +274,12 @@ function draw() {
         christmasShakingSound.setVolume(0, 0.1);
       }
 
-      // Use eyebrow raising for bass
       if (frownProportion > frownThreshold) {
         christmasEyebrowSound.setVolume(2, 0.1);
       } else {
         christmasEyebrowSound.setVolume(0, 0.1);
       }
 
-      // Keep the playback rate control
       let playbackRate = map(noseX, 0, width, 0.8, 1.2);
       christmasMouthSound.rate(playbackRate);
       christmasMouthSound2.rate(playbackRate);
@@ -387,7 +341,6 @@ function draw() {
     drawingContext.shadowBlur = 0;
   }
 
-  // Update and draw wave tracks
   if (isStarted && currentMode === 'NowWe') {
     waveLines[0].addPoint(mouthOpenSound.getVolume());
     waveLines[1].addPoint(mouthOpenSound2.getVolume());
@@ -396,6 +349,21 @@ function draw() {
     
     for (let wave of waveLines) {
       wave.draw();
+    }
+  }
+
+  if (currentMode === 'christmas') {
+    while (snowflakes.length < 100) {
+      snowflakes.push(new Snow());
+    }
+    
+    for (let i = snowflakes.length - 1; i >= 0; i--) {
+      snowflakes[i].fall();
+      snowflakes[i].show();
+      
+      if (snowflakes[i].isOffscreen) {
+        snowflakes.splice(i, 1);
+      }
     }
   }
 }
@@ -410,13 +378,12 @@ var w = 640, h = 480;
 
 function preload() {
   faceMesh = ml5.faceMesh(options);
-  // Normal sounds
+  
   mouthOpenSound = loadSound('assets/NowWeAreReadyToSpend/Other.mp3');
   mouthOpenSound2 = loadSound('assets/NowWeAreReadyToSpend/Vocals.mp3');
   shakingHeadSound = loadSound('assets/NowWeAreReadyToSpend/Drums.mp3');
   eyebrowSound = loadSound('assets/NowWeAreReadyToSpend/Bass.mp3');
   
-  // Christmas sounds
   christmasMouthSound = loadSound('assets/ChristmasTimeIsHere/Other.mp3');
   christmasMouthSound2 = loadSound('assets/ChristmasTimeIsHere/Vocals.mp3');
   christmasShakingSound = loadSound('assets/ChristmasTimeIsHere/Drums.mp3');
@@ -456,7 +423,6 @@ function setup() {
   shakingHeadSound.setVolume(0);
   eyebrowSound.setVolume(0);
 
-  // Add initialization for Christmas song tracks
   christmasMouthSound.setVolume(0);
   christmasMouthSound2.setVolume(0);
   christmasShakingSound.setVolume(0);
@@ -474,43 +440,14 @@ function setup() {
 
   arrow = { x: width - 50, y: height / 2, size: 20 };
 
-  // Initialize wave tracks
   let spacing = height / 5;
   for (let i = 0; i < 4; i++) {
     waveLines.push(new WaveTrack(spacing * (i + 1), WAVE_COLORS[i]));
   }
 
-  // Create mode switch button
   let switchButton = createButton('Switch Mode');
   switchButton.position(20, 20);
   switchButton.mousePressed(switchMode);
-
-  // Add cyberpunk styling to the button
-  switchButton.style('background-color', '#000000');
-  switchButton.style('color', '#00ff00');
-  switchButton.style('border', '2px solid #00ff00');
-  switchButton.style('padding', '10px 20px');
-  switchButton.style('font-family', 'Arial, sans-serif');
-  switchButton.style('font-size', '16px');
-  switchButton.style('text-transform', 'uppercase');
-  switchButton.style('letter-spacing', '2px');
-  switchButton.style('cursor', 'pointer');
-  switchButton.style('box-shadow', '0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00');
-  switchButton.style('text-shadow', '0 0 5px #00ff00');
-  switchButton.style('transition', 'all 0.3s ease');
-
-  // Add hover effect
-  switchButton.mouseOver(() => {
-    switchButton.style('background-color', '#00ff00');
-    switchButton.style('color', '#000000');
-    switchButton.style('box-shadow', '0 0 15px #00ff00, 0 0 25px #00ff00, 0 0 35px #00ff00');
-  });
-
-  switchButton.mouseOut(() => {
-    switchButton.style('background-color', '#000000');
-    switchButton.style('color', '#00ff00');
-    switchButton.style('box-shadow', '0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00');
-  });
 }
 
 
@@ -571,7 +508,6 @@ function mouseDragged() {
 
 
 function switchMode() {
-  // Stop all currently playing sounds
   mouthOpenSound.stop();
   mouthOpenSound2.stop();
   shakingHeadSound.stop();
@@ -581,18 +517,14 @@ function switchMode() {
   christmasShakingSound.stop();
   christmasEyebrowSound.stop();
 
-  // Switch mode
   currentMode = currentMode === 'NowWe' ? 'christmas' : 'NowWe';
   
   if (currentMode === 'christmas') {
-    // Initialize snowflakes
-    snowflakes = Array(100).fill().map(() => new Snowflake());
+    snowflakes = Array(200).fill().map(() => new Snow());
   } else {
-    // Clear snowflakes
     snowflakes = [];
   }
   
-  // Reset arrow position
   arrow.x = width - 50;
   isStarted = false;
 }
