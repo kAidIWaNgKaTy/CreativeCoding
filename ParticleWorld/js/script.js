@@ -41,11 +41,8 @@ class Particle {
   update() {
     this.y += this.speedY;
     this.x += this.speedX;
-    
     this.x += random(-1, 1);
-    
     this.life -= 0.9; 
-    
     this.size *= 0.99;
   }
 
@@ -53,13 +50,9 @@ class Particle {
     push();
     noStroke();
     
-    let fireColor = color(255, random(100, 150), 0, this.life);
-    fill(fireColor);
-    circle(this.x, this.y, this.size);
-    
-    let innerColor = color(255, 200, 50, this.life * 0.8);
-    fill(innerColor);
-    circle(this.x, this.y, this.size * 0.6);
+    // let fireColor = color(255, random(100, 150), 0, this.life);
+    // fill(fireColor);
+    // circle(this.x, this.y, this.size);
     
     let outerColor = color(255, 70, 0, this.life * 0.5);
     fill(outerColor);
@@ -75,6 +68,20 @@ class Particle {
       pop();
     }
     
+    let innerColor = color(255, 200, 50, this.life * 0.8);
+    fill(innerColor);
+    for (let i = 0; i < 3; i++) {
+        push();
+        translate(this.x, this.y);
+        rotate(-frameCount * 0.03 + i * (TWO_PI / 3));
+        triangle(
+            0, -this.size * 0.3,
+            -this.size * 0.2, this.size * 0.3,
+            this.size * 0.2, this.size * 0.3
+        );
+        pop();
+    }
+
     fill(255, 255, 200, this.life);
     let sparkleSize = this.size / 8;
     for (let i = 0; i < 3; i++) {
