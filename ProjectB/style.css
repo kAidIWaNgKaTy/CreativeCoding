@@ -8,25 +8,21 @@ body{
 }
 
 button {
-    /* Basic positioning and layout */
     position: fixed;
     top: 20px;
     left: 20px;
     z-index: 1000;
     padding: 10px 20px;
     
-    /* Typography */
     font-family: Arial, sans-serif;
     font-size: 16px;
     text-transform: uppercase;
     letter-spacing: 2px;
     
-    /* Colors and borders */
     background-color: #000000;
     color: #00ff00;
     border: 2px solid #00ff00;
     
-    /* Effects */
     cursor: pointer;
     box-shadow: 0 0 10px #00ff00, 
                 0 0 20px #00ff00, 
